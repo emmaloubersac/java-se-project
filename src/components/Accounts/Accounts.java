@@ -1,6 +1,10 @@
 package components.Accounts;
 
 import components.Clients;
+import components.Flow.Credit;
+import components.Flow.Debit;
+import components.Flow.Flow;
+import components.Flow.Transfert;
 
 //1.2.1
 
@@ -31,9 +35,23 @@ public abstract class Accounts {
 	public double getBalance() {
 		return balance;
 	}
-
-	public void setBalance(double balance) {
-		this.balance = balance;
+	
+	//1.3.5
+	
+	
+	public void setBalance(Flow flow) {
+		if (flow instanceof Credit) {
+			this.balance += flow.getAmount();
+		} 
+		else if (flow instanceof Debit) {
+			this.balance -= flow.getAmount();
+		} 
+		else if (flow.getAccountId() == this.id) {
+			this.balance += flow.getAmount();
+		} 
+		else if (flow.getFromAccountId() == this.id) {
+			this.balance -= flow.getAmount();
+		}
 	}
 
 	public int getId() {
