@@ -80,6 +80,9 @@ public class Main {
 
 	}
 	
+	//2.2
+	////////////Load Accounts from XML function ////////////////
+	
 	public static ArrayList<Accounts> loadAccountsFromXml(String filename, List<Clients> clientsArray) {
         ArrayList<Accounts> accounts = new ArrayList<>();
 
@@ -141,8 +144,9 @@ public class Main {
         }
         return null;
     }
+    /////////////////////////////////////////////
 	
-	////////////Flow function ////////////////
+	////////////Flow function //////////////////
 
 	public static List<Flow> loadFlowsFromJson(String pathName) {
         Gson gson = new GsonBuilder()
