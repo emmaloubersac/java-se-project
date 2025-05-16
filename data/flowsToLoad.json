@@ -1,0 +1,5 @@
+[{"type":"Debit","comment":"test1","id":1,"amount":50.0,"accountId":1,"effet":false,"flowDate":"2025-05-18"},
+{"type":"Credit","comment":"test2","id":2,"amount":1050.0,"accountId":2,"effet":false,"flowDate":"2025-05-18"},
+{"type":"Credit","comment":"test3","id":3,"amount":1050.0,"accountId":4,"effet":false,"flowDate":"2025-05-18"},
+{"type":"Credit","comment":"test4","id":4,"amount":1050.0,"accountId":6,"effet":false,"flowDate":"2025-05-18"},
+{"type":"Transfert","comment":"test5","id":5,"amount":50.0,"accountId":2,"fromAccountId": 1,"effet":false,"flowDate":"2025-05-18"}]

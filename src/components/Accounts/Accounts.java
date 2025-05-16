@@ -4,7 +4,6 @@ import components.Clients;
 import components.Flow.Credit;
 import components.Flow.Debit;
 import components.Flow.Flow;
-import components.Flow.Transfert;
 
 //1.2.1
 
@@ -15,6 +14,8 @@ public abstract class Accounts {
 	protected Clients client;
 	
 	private static int numberOfAccounts;
+	
+	public Accounts() {}
 	
 	public Accounts(String label, Clients client) {
 		this.label = label;
@@ -38,6 +39,9 @@ public abstract class Accounts {
 	
 	//1.3.5
 	
+	public void setBalance(double amount) {
+		this.balance = amount;
+	}
 	
 	public void setBalance(Flow flow) {
 		if (flow instanceof Credit) {

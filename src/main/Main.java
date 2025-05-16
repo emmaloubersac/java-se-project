@@ -1,7 +1,13 @@
 package main;
 
+import java.io.BufferedReader;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.lang.reflect.Type;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -11,6 +17,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.*;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
 import components.Clients;
 import components.Accounts.Accounts;
 import components.Accounts.CurrentAccount;
@@ -18,7 +33,9 @@ import components.Accounts.SavingAccount;
 import components.Flow.Credit;
 import components.Flow.Debit;
 import components.Flow.Flow;
+import components.Flow.FlowDeserializer;
 import components.Flow.Transfert;
+
 
 
 
@@ -26,13 +43,15 @@ import components.Flow.Transfert;
 public class Main {
 	public static void main(String args[]) {
 		//1.1.2
-		Clients[] clientsArray = generateClients(3);
+		//Clients[] clientsArray = generateClients(3);
+		List<Clients> clientsArray = generateClients(3);
 		
 		displayClients(clientsArray);
 		System.out.println();
 		
-		//1.2.3
-		Accounts[] accountsArray = generateAccountsForClients(clientsArray);
+		//1.2.3 && //2.2
+		//Accounts[] accountsArray = generateAccountsForClients(clientsArray);
+		List<Accounts> accountsArray = loadAccountsFromXml("./data/accountsToLoad.xml", clientsArray);
 		
 		displayAccountsArray(accountsArray);
 		System.out.println();
@@ -44,18 +63,100 @@ public class Main {
 		System.out.println();
 		
 		//1.3.4
-		 List<Flow> flowsArray = generateFlowArray(accountsArray);
-		 
+		//List<Flow> flowsArray = generateFlowArray(accountsArray);
+		List<Flow> flowsArray = loadFlowsFromJson("./data/flowsToLoad.json");
 		 
 		//1.3.5
 		performFlowsToAccounts(flowsArray, accountsMap);
 		System.out.println();
 		
 		displayAccountsMap(accountsMap);
+		System.out.println();
+		
+		//2.1
+		List<Flow> flowsArrayFromJson = loadFlowsFromJson("./data/flowsToLoad.json");
+		
+		flowsArrayFromJson.forEach(System.out::println);
 
 	}
 	
+	public static ArrayList<Accounts> loadAccountsFromXml(String filename, List<Clients> clientsArray) {
+        ArrayList<Accounts> accounts = new ArrayList<>();
+
+        try {
+            File xmlFile = new File(filename);
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(xmlFile);
+
+            doc.getDocumentElement().normalize();
+
+            // Get currentAccount nodes
+            NodeList currentNodes = doc.getElementsByTagName("currentAccount");
+            for (int i = 0; i < currentNodes.getLength(); i++) {
+                Node node = currentNodes.item(i);
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    CurrentAccount ca = new CurrentAccount();
+                    parseAccountElement((Element) node, ca, clientsArray);
+                    accounts.add(ca);
+                }
+            }
+
+            // Get savingAccount nodes
+            NodeList savingNodes = doc.getElementsByTagName("savingAccount");
+            for (int i = 0; i < savingNodes.getLength(); i++) {
+                Node node = savingNodes.item(i);
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    SavingAccount sa = new SavingAccount();
+                    parseAccountElement((Element) node, sa, clientsArray);
+                    accounts.add(sa);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return accounts;
+    }
+
+    private static void parseAccountElement(Element element, Accounts account, List<Clients> clientsArray) {
+        account.setLabel(getTagValue("label", element));
+        account.setBalance(Double.parseDouble(getTagValue("balance", element)));
+        account.setId(Integer.parseInt(getTagValue("id", element)));
+
+        Element clientElement = (Element) element.getElementsByTagName("client").item(0);
+        if (clientElement != null) {
+            String name = getTagValue("name", clientElement);
+            String firstname = getTagValue("firstName", clientElement);
+            account.setClient(getClient(clientsArray, name, firstname));
+        }
+    }
+
+    private static String getTagValue(String tag, Element element) {
+        NodeList list = element.getElementsByTagName(tag);
+        if (list != null && list.getLength() > 0) {
+            Node node = list.item(0);
+            return node.getTextContent();
+        }
+        return null;
+    }
+	
 	////////////Flow function ////////////////
+
+	public static List<Flow> loadFlowsFromJson(String pathName) {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Flow.class, new FlowDeserializer())
+                .create();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(pathName))) {
+            Type listType = new TypeToken<List<Flow>>(){}.getType();
+            return gson.fromJson(reader, listType);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return List.of(); // return empty list on error
+        }
+    }
 	
 	public static void performFlowsToAccounts(List<Flow> flowsArray, Map<Integer, Accounts> accountsMap) {
 		for (Flow flow : flowsArray ) {
@@ -78,15 +179,15 @@ public class Main {
 	public static List<Flow> generateFlowArray(Accounts[] accountsArray) {
 		List<Flow> flowsArray = new ArrayList<>();
 		
-		flowsArray.add(new Debit( 50.0, 1, LocalDate.now().plusDays(2)));
+		flowsArray.add(new Debit( 50.0, 1, LocalDate.now().plusDays(2).toString()));
 		
 		for (Accounts acc : accountsArray) {
 			if (acc.getLabel().contains("save")) {
-				flowsArray.add(new Credit( 1050.0, acc.getId(), LocalDate.now().plusDays(2)));
+				flowsArray.add(new Credit( 1050.0, acc.getId(), LocalDate.now().plusDays(2).toString()));
 			}	
 		}
 		
-		flowsArray.add(new Transfert( 50.0, 2, 1, LocalDate.now().plusDays(2)));
+		flowsArray.add(new Transfert( 50.0, 2, 1, LocalDate.now().plusDays(2).toString()));
 		
 		
 		return flowsArray;
@@ -97,6 +198,14 @@ public class Main {
 	//////////// Accounts Map function ////////////////
 
 	public static Map<Integer, Accounts> generateMapAccountsFromArray(Accounts[] accountsArray) {
+		Map<Integer, Accounts> accountsMap = new HashMap<>();
+		for (Accounts acc : accountsArray) {
+			accountsMap.put(acc.getId(), acc);
+		}
+		return accountsMap;
+	}
+	
+	public static Map<Integer, Accounts> generateMapAccountsFromArray(List<Accounts> accountsArray) {
 		Map<Integer, Accounts> accountsMap = new HashMap<>();
 		for (Accounts acc : accountsArray) {
 			accountsMap.put(acc.getId(), acc);
@@ -132,24 +241,61 @@ public class Main {
 		
 	}
 	
+	public static void displayAccountsArray(List<Accounts> accountsArray) {
+		accountsArray.stream().forEach(acc -> System.out.println(acc.toString()) );
+		
+	}
+	
 	//////////////////////////////////////////////////
 
 	
 	//////////// Clients Array function ////////////////
 
+	public static void displayClients(List<Clients> clientsArray) {
+		clientsArray.stream().forEach(c -> System.out.println(c.toString()));
+		
+	}
+	
 	public static void displayClients(Clients[] clientsArray) {
 		Arrays.stream(clientsArray).forEach(c -> System.out.println(c.toString()));
 		
 	}
+	
+	//if the client is already in the clientArray we return it, otherwise we create it and add it to the clientsArray before return it
+	public static Clients getClient(List<Clients> clientsArray, String name, String firstName ) {
+		
+		for (Clients client : clientsArray) {
+			if (client.getName().equals(name) && client.getFirstName().equals(firstName)) {
+				return client;
+			}
+		}
+		
+		Clients newClient = new Clients(name, firstName);
+		System.out.println(newClient);
+		clientsArray.add(newClient);
+			
+		return newClient;
+		
+	}
+	
+	public static List<Clients> generateClients(int clientsNumber) {
+		List<Clients> clientsArray = new ArrayList<>();
+		
+		for (int i = 0; i < clientsNumber; i++) {
+			clientsArray.add(new Clients("name" + (i + 1), "firstName" + (i + 1)));
+		}
+		return clientsArray;
+	}
 
-	public static Clients[] generateClients(int clientsNumber) {
+	/*public static Clients[] generateClients(int clientsNumber) {
 		Clients[] clientsArray = new Clients[clientsNumber];
 		
 		for (int i = 0; i < clientsNumber; i++) {
 			clientsArray[i] = new Clients("name" + (i + 1), "firstName" + (i + 1));
 		}
 		return clientsArray;
-	}
+	}*/
+	
 	
 	//////////////////////////////////////////////////
 }

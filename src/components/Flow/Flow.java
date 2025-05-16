@@ -1,7 +1,5 @@
 package components.Flow;
 
-import java.time.LocalDate;
-
 //1.3.2
 
 public abstract class Flow {
@@ -12,11 +10,13 @@ public abstract class Flow {
 	private double amount;
 	private int accountId;
 	private boolean effet;
-	private LocalDate flowDate;
+	private String flowDate;
 	
 	private static int numberOfFlows;
 	
-	public Flow( double amount, int accountId, LocalDate flowDate) {
+	public Flow() {}
+	
+	public Flow( double amount, int accountId, String flowDate) {
 		this.amount = amount;
 		this.accountId = accountId;
 		this.effet = false;
@@ -25,7 +25,7 @@ public abstract class Flow {
 		this.flowDate = flowDate;
 	}
 	
-	public Flow(String comment, double amount, int accountId, boolean effet, LocalDate flowDate) {
+	public Flow(String comment, double amount, int accountId, boolean effet, String flowDate) {
 		this.comment = comment;
 		this.amount = amount;
 		this.accountId = accountId;
@@ -82,12 +82,24 @@ public abstract class Flow {
 		this.effet = effet;
 	}
 	
-	public LocalDate getFlowDate() {
+	public String getFlowDate() {
 		return flowDate;
 	}
 	
-	public void setFlowDate(LocalDate flowDate) {
+	public void setFlowDate(String flowDate) {
 		this.flowDate = flowDate;
+	}
+	
+	@Override
+	public String toString() {
+		return "{"
+		        + "\"comment\":\"" + comment + "\","
+		        + "\"id\":" + id + ","
+		        + "\"amount\":" + amount + ","
+		        + "\"accountId\":" + accountId + ","
+		        + "\"effet\":" + effet + ","
+		        + "\"flowDate\":\"" + flowDate + "\""
+		        + "}";
 	}
 	
 }

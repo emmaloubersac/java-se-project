@@ -43,7 +43,7 @@ public class Clients {
 	
 	@Override
 	public String toString() {
-		return "Client number " + this.id + " : " + this.firstName + " " + this.name;
+		return "Client " + this.id + " : firstName: " + this.firstName + ", name: " + this.name;
 	}
 	
 }
