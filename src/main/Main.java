@@ -22,9 +22,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.*;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import components.Clients;
 import components.Accounts.Accounts;
@@ -33,7 +31,6 @@ import components.Accounts.SavingAccount;
 import components.Flow.Credit;
 import components.Flow.Debit;
 import components.Flow.Flow;
-import components.Flow.FlowDeserializer;
 import components.Flow.Transfert;
 
 
@@ -149,16 +146,21 @@ public class Main {
 	////////////Flow function //////////////////
 
 	public static List<Flow> loadFlowsFromJson(String pathName) {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(Flow.class, new FlowDeserializer())
-                .create();
+        try {
+            ObjectMapper mapper = new ObjectMapper();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(pathName))) {
-            Type listType = new TypeToken<List<Flow>>(){}.getType();
-            return gson.fromJson(reader, listType);
-        } catch (IOException e) {
+            List<Flow> flows = List.of(mapper.readValue(new File(pathName), Flow[].class));
+
+            // Print them
+            System.out.println("Load Flows from Json result : ");
+            flows.forEach(f -> System.out.println(f.getClass().getSimpleName() + " -> " + f.toString()));
+            System.out.println();
+            
+            return flows;
+
+        } catch (Exception e) {
             e.printStackTrace();
-            return List.of(); // return empty list on error
+            return List.of();
         }
     }
 	

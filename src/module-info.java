@@ -5,8 +5,9 @@
  * 
  */
 module ELBank {
-	requires com.google.gson;
 	requires java.xml;
-	opens components.Flow to com.google.gson;
+	requires com.fasterxml.jackson.annotation;
+	requires com.fasterxml.jackson.databind;
+	opens components.Flow to com.fasterxml.jackson.databind;
 	
 }

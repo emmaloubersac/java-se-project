@@ -1,7 +1,17 @@
 package components.Flow;
-
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 //1.3.2
 
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME,
+  property = "type"
+)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = Debit.class, name = "Debit"),
+    @JsonSubTypes.Type(value = Credit.class, name = "Credit"),
+    @JsonSubTypes.Type(value = Transfert.class, name = "Transfert")
+})
 public abstract class Flow {
 	
 
